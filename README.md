@@ -9,7 +9,7 @@ Go package for the [Pushover](https://pushover.net/) API.
 
 ## About
 
-This package enables your Go application to send requests to the [Pushover](https://pushover.net/) service through the [Pushover REST API](https://pushover.net/api). Implementing a notification message in your Go code is as simple as `pushover.Message(context.Background(), pushover.MessageRequest{User: "user", Token: "token", Message: "message"})`. It's just a straightforward function call - no fancy methods attached to functions, just populate a structure and [Go](https://golang.org/).
+This package enables your Go application to send requests to the [Pushover](https://pushover.net/) service through the [Pushover REST API](https://pushover.net/api). Implementing a notification message in your Go code is as simple as `pushover.Message(pushover.MessageRequest{User: "user", Token: "token", Message: "message"})`. It's just a straightforward function call - no fancy methods attached to functions, just populate a structure and [Go](https://golang.org/).
 
 Note that Pushover has many APIs available, but currently this package only supports:
 -  [Messages](https://pushover.net/api#messages)
@@ -38,7 +38,7 @@ import (
 func main() {
 	var r *pushover.MessageResponse
 	var e error
-	if r, e = pushover.Message(context.Background(), pushover.MessageRequest{
+	if r, e = pushover.Message(pushover.MessageRequest{
 		Token: os.Args[1], User: os.Args[2], Message: os.Args[3]},
 	); e != nil {
 		fmt.Println(e)
