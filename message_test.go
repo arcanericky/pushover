@@ -1,12 +1,14 @@
 package pushover
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 /*
@@ -88,36 +90,22 @@ func serverHandler(w http.ResponseWriter, r *http.Request) {
 
 	if user[0] == "failstatus" {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, `{"status":"abc","request":"%s"}`, id)
 		return
 	}
 
 	if user[0] == "failrequest" {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, `{"status":1,"request":1337}`)
-		return
-	}
-
-	if user[0] == "failerrors" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"priority":"is invalid, can only be -2, -1, 0, 1, or 2","errors":[1337],"status":0,"request":"%s"}`, id)
-		return
-	}
-
-	if user[0] == "failparameters" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"priority":1337,"errors":["priority is invalid"],"status":0,"request":"%s"}`, id)
 		return
 	}
 
 	if user[0] == "failjson" {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"priority":1337,"errors":"priority is invalid"],"status":0,"request":"%s"}`, id)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, `{"priority":"is invalid, can only be -2, -1, 0, 1, or 2","errors":"priority is invalid"],"status":0,"request":"%s"}`, id)
 		return
 	}
 
@@ -140,7 +128,7 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Default Pushover URL
 	messagesURL = apiServer.URL
-	r, e := messageWithoutValidation(request)
+	r, e := messageWithoutValidation(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "message cannot be blank" || r.ErrorParameters["message"] != "cannot be blank" {
 		t.Error("Default Pushover URL")
@@ -148,14 +136,14 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Invalid Pushover URL
 	request.PushoverURL = "\x7f"
-	r, e = messageWithoutValidation(request)
+	r, e = messageWithoutValidation(context.TODO(), request)
 	if e != ErrInvalidRequest {
 		t.Error("Invalid Pushover URL")
 	}
 
 	// Handling of no message
 	request.PushoverURL = apiServer.URL
-	r, e = messageWithoutValidation(request)
+	r, e = messageWithoutValidation(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "message cannot be blank" || r.ErrorParameters["message"] != "cannot be blank" {
 		t.Error("Handling of no message without validation")
@@ -168,7 +156,7 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Handling of no token
 	request.Message = "test message"
-	r, e = messageWithoutValidation(request)
+	r, e = messageWithoutValidation(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "application token is invalid" || r.ErrorParameters["token"] != "invalid" {
 		t.Error("Handling of no token without validation")
@@ -181,7 +169,7 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Handling of no user
 	request.Token = "testtoken"
-	r, e = messageWithoutValidation(request)
+	r, e = messageWithoutValidation(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "user identifier is not a valid user, group, or subscribed user key" ||
 		r.ErrorParameters["user"] != "invalid" {
@@ -215,20 +203,6 @@ func TestPushoverMessage(t *testing.T) {
 		t.Error("Invalid request ID in response")
 	}
 
-	// Invalid errors array in response
-	request.User = "failerrors"
-	r, e = Message(request)
-	if e != ErrInvalidResponse {
-		t.Error("Invalid errors list in response")
-	}
-
-	// Invalid parameters array in response
-	request.User = "failparameters"
-	r, e = Message(request)
-	if e != ErrInvalidResponse {
-		t.Error("Invalid error parameters in response")
-	}
-
 	// Invalid json response
 	request.User = "failjson"
 	r, e = Message(request)
@@ -259,6 +233,14 @@ func TestPushoverMessage(t *testing.T) {
 		len(r.Errors) > 0 || len(r.ErrorParameters) > 0 {
 		t.Error("All fields submitted")
 	}
+
+	// Context cancellation
+	ctx, cancel := context.WithTimeout(context.Background(), 0*time.Millisecond)
+	r, e = MessageContext(ctx, request)
+	if e != context.DeadlineExceeded {
+		t.Error("Context deadline exceeded")
+	}
+	cancel()
 
 	// Image attachment
 	request.ImageReader = strings.NewReader("image data")

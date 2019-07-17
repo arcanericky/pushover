@@ -7,7 +7,10 @@
 // library functions.
 package pushover
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 const (
 	keyDevice    = "device"
@@ -63,7 +66,7 @@ func mapKeyToInt(key string, m map[string]interface{}) (int, bool) {
 	return result, ok
 }
 
-func interfaceArrayToStringArray(key string, m map[string]interface{}) ([]string, error) {
+func interfaceArrayToStringArray(key string, m map[string]interface{}) []string {
 	var interfaceArray []interface{}
 	var stringArray []string
 	var ok bool
@@ -71,26 +74,21 @@ func interfaceArrayToStringArray(key string, m map[string]interface{}) ([]string
 	if interfaceArray, ok = m[key].([]interface{}); ok {
 		stringArray = make([]string, len(interfaceArray))
 		for i, v := range interfaceArray {
-			if stringArray[i], ok = v.(string); !ok {
-				return nil, ErrInvalidResponse
-			}
+			stringArray[i] = fmt.Sprintf("%v", v)
 		}
 	} else {
 		stringArray = []string{}
 	}
 
-	return stringArray, nil
+	return stringArray
 }
 
-func interfaceMapToStringMap(inMap map[string]interface{}) (map[string]string, error) {
-	var ok bool
+func interfaceMapToStringMap(inMap map[string]interface{}) map[string]string {
 	outMap := make(map[string]string)
 
 	for k, v := range inMap {
-		if outMap[k], ok = v.(string); !ok {
-			return nil, ErrInvalidResponse
-		}
+		outMap[k] = fmt.Sprintf("%v", v)
 	}
 
-	return outMap, nil
+	return outMap
 }

@@ -2,10 +2,13 @@ package pushover
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"golang.org/x/net/context/ctxhttp"
 )
 
 // ValidateRequest is the data to POST to the Pushover
@@ -76,7 +79,7 @@ type ValidateResponse struct {
 	ErrorParameters map[string]string
 }
 
-func validateWithoutValidation(request ValidateRequest) (*ValidateResponse, error) {
+func validateWithoutValidation(ctx context.Context, request ValidateRequest) (*ValidateResponse, error) {
 	if len(request.PushoverURL) == 0 {
 		request.PushoverURL = validateURL
 	}
@@ -90,14 +93,17 @@ func validateWithoutValidation(request ValidateRequest) (*ValidateResponse, erro
 		formData.Set(keyDevice, request.Device)
 	}
 
-	resp, err := http.PostForm(request.PushoverURL, formData)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
-
+	resp, err := ctxhttp.PostForm(ctx, &http.Client{}, request.PushoverURL, formData)
 	if err != nil {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	r := new(ValidateResponse)
 
@@ -137,42 +143,35 @@ func validateWithoutValidation(request ValidateRequest) (*ValidateResponse, erro
 	}
 
 	// Populate licenses
-	if r.Licenses, err = interfaceArrayToStringArray(keyLicenses, result); err != nil {
-		return nil, err
-	}
+	r.Licenses = interfaceArrayToStringArray(keyLicenses, result)
 	delete(result, keyLicenses)
 
 	// Populate devices
-	if r.Devices, err = interfaceArrayToStringArray(keyDevices, result); err != nil {
-		return nil, err
-	}
+	r.Devices = interfaceArrayToStringArray(keyDevices, result)
 	delete(result, keyDevices)
 
 	// Populate errors
-	if r.Errors, err = interfaceArrayToStringArray(keyErrors, result); err != nil {
-		return nil, err
-	}
+	r.Errors = interfaceArrayToStringArray(keyErrors, result)
 	delete(result, keyErrors)
 
 	// Populate parameters with corresponding errors
-	if r.ErrorParameters, err = interfaceMapToStringMap(result); err != nil {
-		return nil, err
-	}
+	r.ErrorParameters = interfaceMapToStringMap(result)
 
 	return r, nil
 }
 
-// Validate will submit a POST request to the Pushover
+// ValidateContext will submit a POST request to the Pushover
 // Validate API after validating the required fields are
 // present This function will check a user or group token
 // to determine if it is valid.
 //
 // The required fields are: Token, User
-//   resp, err := pushover.Validate(pushover.ValidateRequest{
-//	   Token:   token,
-//	   User:    user,
+//   resp, err := pushover.ValidateContext(context.Background(),
+//     pushover.ValidateRequest{
+//	     Token:   token,
+//	     User:    user,
 //   })
-func Validate(request ValidateRequest) (*ValidateResponse, error) {
+func ValidateContext(ctx context.Context, request ValidateRequest) (*ValidateResponse, error) {
 	// Validate Token
 	if len(request.Token) == 0 {
 		return nil, ErrInvalidToken
@@ -183,5 +182,19 @@ func Validate(request ValidateRequest) (*ValidateResponse, error) {
 		return nil, ErrInvalidUser
 	}
 
-	return validateWithoutValidation(request)
+	return validateWithoutValidation(ctx, request)
+}
+
+// Validate will submit a POST request to the Pushover
+// Validate API after validating the required fields are
+// present This function will check a user or group token
+// to determine if it is valid.
+//
+// The required fields are: Token, User
+//   resp, err := pushover.Validate(pushover.ValidateRequest{
+//	     Token:   token,
+//	     User:    user,
+//   })
+func Validate(request ValidateRequest) (*ValidateResponse, error) {
+	return ValidateContext(context.Background(), request)
 }

@@ -2,6 +2,7 @@ package pushover
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"mime/multipart"
@@ -128,7 +129,7 @@ type MessageResponse struct {
 	ErrorParameters map[string]string
 }
 
-func messageWithoutValidation(request MessageRequest) (*MessageResponse, error) {
+func messageWithoutValidation(ctx context.Context, request MessageRequest) (*MessageResponse, error) {
 	var requestData io.Reader
 	var contentType string
 
@@ -190,17 +191,21 @@ func messageWithoutValidation(request MessageRequest) (*MessageResponse, error) 
 		return nil, ErrInvalidRequest
 	}
 
+	req = req.WithContext(ctx)
 	req.Header.Set("Content-Type", contentType)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
-	if resp != nil && resp.Body != nil {
-		defer resp.Body.Close()
-	}
-
 	if err != nil {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	r := new(MessageResponse)
 
@@ -235,20 +240,16 @@ func messageWithoutValidation(request MessageRequest) (*MessageResponse, error) 
 	delete(result, keyRequest)
 
 	// Populate errors
-	if r.Errors, err = interfaceArrayToStringArray(keyErrors, result); err != nil {
-		return nil, err
-	}
+	r.Errors = interfaceArrayToStringArray(keyErrors, result)
 	delete(result, keyErrors)
 
 	// Populate parameters with corresponding errors
-	if r.ErrorParameters, err = interfaceMapToStringMap(result); err != nil {
-		return nil, err
-	}
+	r.ErrorParameters = interfaceMapToStringMap(result)
 
 	return r, nil
 }
 
-// Message will submit a request to the Pushover
+// MessageContext will submit a request to the Pushover
 // Message API after validating the required fields
 // are present. This function will send a
 // message, triggering a notification on a user's
@@ -256,12 +257,13 @@ func messageWithoutValidation(request MessageRequest) (*MessageResponse, error) 
 //
 // The required fields are: Message, Token, User
 //
-//   resp, err := pushover.Message(pushover.MessageRequest{
-//	   Token:   token,
-//	   User:    user,
-//	   Message: message,
+//   resp, err := pushover.MessageContext(context.Background(),
+//     pushover.MessageRequest{
+//	     Token:   token,
+//	     User:    user,
+//	     Message: message,
 //   })
-func Message(request MessageRequest) (*MessageResponse, error) {
+func MessageContext(ctx context.Context, request MessageRequest) (*MessageResponse, error) {
 	// Validate Message
 	if len(request.Message) == 0 {
 		return nil, ErrInvalidMessage
@@ -277,5 +279,22 @@ func Message(request MessageRequest) (*MessageResponse, error) {
 		return nil, ErrInvalidUser
 	}
 
-	return messageWithoutValidation(request)
+	return messageWithoutValidation(ctx, request)
+}
+
+// Message will submit a request to the Pushover
+// Message API after validating the required fields
+// are present. This function will send a
+// message, triggering a notification on a user's
+// device or a group's devices.
+//
+// The required fields are: Message, Token, User
+//
+//   resp, err := pushover.Message(pushover.MessageRequest{
+//	     Token:   token,
+//	     User:    user,
+//	     Message: message,
+//   })
+func Message(request MessageRequest) (*MessageResponse, error) {
+	return MessageContext(context.Background(), request)
 }
