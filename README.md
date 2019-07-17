@@ -4,11 +4,12 @@ Go package for the [Pushover](https://pushover.net/) API.
 
 [![Build Status](https://travis-ci.com/arcanericky/pushover.svg?branch=master)](https://travis-ci.com/arcanericky/pushover)
 [![codecov](https://codecov.io/gh/arcanericky/pushover/branch/master/graph/badge.svg)](https://codecov.io/gh/arcanericky/pushover)
+[![GoDoc](https://img.shields.io/badge/docs-GoDoc-brightgreen.svg)](https://godoc.org/github.com/arcanericky/pushover)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
 ## About
 
-This package enables your Go application to send requests to the [Pushover](https://pushover.net/) service through the [Pushover REST API](https://pushover.net/api). Implementing a notification message in your Go code is as simple as `pushover.Message(pushover.MessageRequest{User: "user", Token: "token", Message: "message"}`. It's just a straightforward function call - no fancy methods attached to functions, just populate a structure and [Go](https://golang.org/).
+This package enables your Go application to send requests to the [Pushover](https://pushover.net/) service through the [Pushover REST API](https://pushover.net/api). Implementing a notification message in your Go code is as simple as `pushover.Message(context.Background(), pushover.MessageRequest{User: "user", Token: "token", Message: "message"})`. It's just a straightforward function call - no fancy methods attached to functions, just populate a structure and [Go](https://golang.org/).
 
 Note that Pushover has many APIs available, but currently this package only supports:
 -  [Messages](https://pushover.net/api#messages)
@@ -28,6 +29,7 @@ $ cat > main.go << EOF
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"github.com/arcanericky/pushover"
@@ -36,7 +38,7 @@ import (
 func main() {
 	var r *pushover.MessageResponse
 	var e error
-	if r, e = pushover.Message(pushover.MessageRequest{
+	if r, e = pushover.Message(context.Background(), pushover.MessageRequest{
 		Token: os.Args[1], User: os.Args[2], Message: os.Args[3]},
 	); e != nil {
 		fmt.Println(e)
@@ -129,8 +131,9 @@ Some features that are not implemented but would be welcome:
   - [Groups](https://pushover.net/api/groups)
   - [Glances](https://pushover.net/api/groups)
   - [Licensing](https://pushover.net/api/licensing)
-  - [Open Client API](https://pushover.net/api/client)
-- Use of environment variables for API and User tokens in the CLI
+  - [Open Client](https://pushover.net/api/client)
+  - [Limits](https://pushover.net/api#limits)
+- Use of environment variables for API token in the CLI
 
 ## Inspiration
 

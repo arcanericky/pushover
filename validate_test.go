@@ -1,10 +1,12 @@
 package pushover
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 /*
@@ -39,20 +41,6 @@ func validateServerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user[0] == "faildevices" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"status":1,"group":0,"devices":[1337],"licenses":["Android"],"request":"%s"}`, id)
-		return
-	}
-
-	if user[0] == "faillicenses" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"status":1,"group":0,"devices":["pixel2xl"],"licenses":[1337],"request":"%s"}`, id)
-		return
-	}
-
 	if user[0] == "failstatus" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -64,20 +52,6 @@ func validateServerHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, `{"status":1,"group":0,"devices":["pixel2xl"],"licenses":["Android"],"request":1337}`)
-		return
-	}
-
-	if user[0] == "failerrors" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"user":"invalid","errors":[1337],"status":0,"request":"%s"}`, id)
-		return
-	}
-
-	if user[0] == "failparameters" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"user":1337,"errors":["user key is invalid"],"status":0,"request":"%s"}`, id)
 		return
 	}
 
@@ -107,14 +81,14 @@ func TestPushoverValidate(t *testing.T) {
 
 	// Default Pushover URL
 	validateURL = apiServer.URL
-	r, e := validateWithoutValidation(request)
+	r, e := validateWithoutValidation(context.TODO(), request)
 	if e != nil || r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "application token is invalid" || r.ErrorParameters["token"] != "invalid" {
 		t.Error("Default Pushover URL")
 	}
 
 	// Handling of no token
-	r, e = validateWithoutValidation(request)
+	r, e = validateWithoutValidation(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "application token is invalid" || r.ErrorParameters["token"] != "invalid" {
 		t.Error("Handling of no token without validation")
@@ -127,7 +101,7 @@ func TestPushoverValidate(t *testing.T) {
 
 	// Handling of no user
 	request.Token = "testtoken"
-	r, e = validateWithoutValidation(request)
+	r, e = validateWithoutValidation(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "user key is invalid" ||
 		r.ErrorParameters["user"] != "invalid" {
@@ -148,19 +122,13 @@ func TestPushoverValidate(t *testing.T) {
 		t.Error("Valid submit data")
 	}
 
-	// Invalid devices in response
-	request.User = "faildevices"
-	r, e = Validate(request)
-	if e != ErrInvalidResponse {
-		t.Error("Invalid devices in response")
+	// Context cancellation
+	ctx, cancel := context.WithTimeout(context.Background(), 0*time.Millisecond)
+	r, e = ValidateContext(ctx, request)
+	if e != context.DeadlineExceeded {
+		t.Error("Context deadline exceeded")
 	}
-
-	// Invalid licenses in response
-	request.User = "faillicenses"
-	r, e = Validate(request)
-	if e != ErrInvalidResponse {
-		t.Error("Invalid licenses in response")
-	}
+	cancel()
 
 	// Invalid API Status in response
 	request.User = "failstatus"
@@ -174,20 +142,6 @@ func TestPushoverValidate(t *testing.T) {
 	r, e = Validate(request)
 	if e != ErrInvalidResponse {
 		t.Error("Invalid request ID in response")
-	}
-
-	// Invalid errors array in response
-	request.User = "failerrors"
-	r, e = Validate(request)
-	if e != ErrInvalidResponse {
-		t.Error("Invalid errors list in response")
-	}
-
-	// Invalid parameters array in response
-	request.User = "failparameters"
-	r, e = Validate(request)
-	if e != ErrInvalidResponse {
-		t.Error("Invalid error parameters in response")
 	}
 
 	// Invalid json response
