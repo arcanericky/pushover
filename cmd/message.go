@@ -49,6 +49,10 @@ func outputMessageResponse(r pushover.MessageResponse) {
 	fmt.Printf("%-*s %d\n", maxLen, "API Status:", int(r.APIStatus))
 	fmt.Printf("%-*s %s\n", maxLen, "Request ID:", r.Request)
 
+	if len(r.Receipt) > 0 {
+		fmt.Printf("%-*s %s\n", maxLen, "Receipt:", r.Receipt)
+	}
+
 	if len(r.ErrorParameters) > 0 {
 		maxLen := 0
 		for k := range r.ErrorParameters {

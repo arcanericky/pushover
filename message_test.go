@@ -85,6 +85,11 @@ func serverHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(w, `{"priority":"is invalid, can only be -2, -1, 0, 1, or 2","errors":["priority is invalid"],"status":0,"request":"%s"}`, id)
 			return
+		} else if priority == 2 {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintf(w, `{"status":1,"request":"%s","receipt":"1337"}`, id)
+			return
 		}
 	}
 
@@ -233,6 +238,15 @@ func TestPushoverMessage(t *testing.T) {
 		len(r.Errors) > 0 || len(r.ErrorParameters) > 0 {
 		t.Error("All fields submitted")
 	}
+
+	// Priority of 2 yields additional "receipt" parameter
+	request.Priority = "2"
+	r, e = Message(request)
+	if r.HTTPStatusCode != http.StatusOK || r.APIStatus != 1 || r.Request != id ||
+		len(r.Errors) > 0 || len(r.ErrorParameters) > 0 {
+		t.Error("Priority 2")
+	}
+	request.Priority = "0"
 
 	// Context cancellation
 	ctx, cancel := context.WithTimeout(context.Background(), 0*time.Millisecond)

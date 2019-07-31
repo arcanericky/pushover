@@ -22,6 +22,7 @@ const (
 	keyMessage   = "message"
 	keyMonospace = "monospace"
 	keyPriority  = "priority"
+	keyReceipt   = "receipt"
 	keyRequest   = "request"
 	keySound     = "sound"
 	keyStatus    = "status"
