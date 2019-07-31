@@ -118,6 +118,12 @@ type MessageResponse struct {
 	// ID assigned to the request by Pushover
 	Request string
 
+	// Receipt
+	//
+	// When a priority of 2 is given, a receipt field
+	// is returned
+	Receipt string
+
 	// List of errors returned
 	//
 	// Empty if no errors
@@ -238,6 +244,11 @@ func messageWithoutValidation(ctx context.Context, request MessageRequest) (*Mes
 		return nil, ErrInvalidResponse
 	}
 	delete(result, keyRequest)
+
+	// Populate receipt
+	if r.Receipt, ok = result[keyReceipt].(string); ok {
+		delete(result, keyReceipt)
+	}
 
 	// Populate errors
 	r.Errors = interfaceArrayToStringArray(keyErrors, result)

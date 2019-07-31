@@ -25,7 +25,7 @@ func serverMessageHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, `{"status":1,"request":"%s"}`, id)
+	fmt.Fprintf(w, `{"status":1,"request":"%s","receipt":"1337"}`, id)
 }
 
 func TestPushoverMessageCLI(t *testing.T) {
