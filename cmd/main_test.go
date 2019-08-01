@@ -48,13 +48,21 @@ func TestPushoverMessageCLI(t *testing.T) {
 	// Nothing to check - exercising code
 	main()
 
+	// Enable Priority
+	os.Args = append(os.Args, "--priority", "-1")
+
+	// Nothing to check - exercising code
+	main()
+
 	// Test image attachment with valid file
+	os.Args = baseArgs
 	os.Args = append(os.Args, "--image", savedArgs[0])
 
 	// Nothing to check - exercising code
 	main()
 
 	// Test image attachment with invalid file
+	os.Args = baseArgs
 	os.Args = append(os.Args, "--image", "invalidfile")
 
 	// Nothing to check - exercising code

@@ -133,7 +133,7 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Default Pushover URL
 	messagesURL = apiServer.URL
-	r, e := messageWithoutValidation(context.TODO(), request)
+	r, e := MessageContext(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "message cannot be blank" || r.ErrorParameters["message"] != "cannot be blank" {
 		t.Error("Default Pushover URL")
@@ -141,40 +141,42 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Invalid Pushover URL
 	request.PushoverURL = "\x7f"
-	r, e = messageWithoutValidation(context.TODO(), request)
+	r, e = MessageContext(context.TODO(), request)
 	if e != ErrInvalidRequest {
 		t.Error("Invalid Pushover URL")
 	}
 
 	// Handling of no message
 	request.PushoverURL = apiServer.URL
-	r, e = messageWithoutValidation(context.TODO(), request)
+	r, e = MessageContext(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "message cannot be blank" || r.ErrorParameters["message"] != "cannot be blank" {
 		t.Error("Handling of no message without validation")
 	}
 
 	r, e = Message(request)
-	if e != ErrInvalidMessage {
-		t.Error("Handling of no message with validation")
+	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
+		r.Errors[0] != "message cannot be blank" || r.ErrorParameters["message"] != "cannot be blank" {
+		t.Error("Handling of no message without validation")
 	}
 
 	// Handling of no token
 	request.Message = "test message"
-	r, e = messageWithoutValidation(context.TODO(), request)
+	r, e = MessageContext(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "application token is invalid" || r.ErrorParameters["token"] != "invalid" {
 		t.Error("Handling of no token without validation")
 	}
 
 	r, e = Message(request)
-	if e != ErrInvalidToken {
-		t.Error("Handling of no token with validation")
+	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
+		r.Errors[0] != "application token is invalid" || r.ErrorParameters["token"] != "invalid" {
+		t.Error("Handling of no token without validation")
 	}
 
 	// Handling of no user
 	request.Token = "testtoken"
-	r, e = messageWithoutValidation(context.TODO(), request)
+	r, e = MessageContext(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "user identifier is not a valid user, group, or subscribed user key" ||
 		r.ErrorParameters["user"] != "invalid" {
@@ -182,8 +184,10 @@ func TestPushoverMessage(t *testing.T) {
 	}
 
 	r, e = Message(request)
-	if e != ErrInvalidUser {
-		t.Error("Handling of no user with validation")
+	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
+		r.Errors[0] != "user identifier is not a valid user, group, or subscribed user key" ||
+		r.ErrorParameters["user"] != "invalid" {
+		t.Error("Handling of no user without validation")
 	}
 
 	// Valid submission

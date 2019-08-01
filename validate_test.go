@@ -81,27 +81,28 @@ func TestPushoverValidate(t *testing.T) {
 
 	// Default Pushover URL
 	validateURL = apiServer.URL
-	r, e := validateWithoutValidation(context.TODO(), request)
+	r, e := ValidateContext(context.TODO(), request)
 	if e != nil || r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "application token is invalid" || r.ErrorParameters["token"] != "invalid" {
 		t.Error("Default Pushover URL")
 	}
 
 	// Handling of no token
-	r, e = validateWithoutValidation(context.TODO(), request)
+	r, e = ValidateContext(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "application token is invalid" || r.ErrorParameters["token"] != "invalid" {
 		t.Error("Handling of no token without validation")
 	}
 
 	r, e = Validate(request)
-	if e != ErrInvalidToken {
-		t.Error("Handling of no token with validation")
+	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
+		r.Errors[0] != "application token is invalid" || r.ErrorParameters["token"] != "invalid" {
+		t.Error("Handling of no token without validation")
 	}
 
 	// Handling of no user
 	request.Token = "testtoken"
-	r, e = validateWithoutValidation(context.TODO(), request)
+	r, e = ValidateContext(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "user key is invalid" ||
 		r.ErrorParameters["user"] != "invalid" {
@@ -109,8 +110,10 @@ func TestPushoverValidate(t *testing.T) {
 	}
 
 	r, e = Validate(request)
-	if e != ErrInvalidUser {
-		t.Error("Handling of no user with validation")
+	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
+		r.Errors[0] != "user key is invalid" ||
+		r.ErrorParameters["user"] != "invalid" {
+		t.Error("Handling of no user without validation")
 	}
 
 	// Valid submission
