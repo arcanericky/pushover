@@ -16,6 +16,7 @@ const (
 	keyDevice    = "device"
 	keyDevices   = "devices"
 	keyErrors    = "errors"
+	keyExpire    = "expire"
 	keyGroup     = "group"
 	keyHTML      = "html"
 	keyLicenses  = "licenses"
@@ -24,6 +25,7 @@ const (
 	keyPriority  = "priority"
 	keyReceipt   = "receipt"
 	keyRequest   = "request"
+	keyRetry     = "retry"
 	keySound     = "sound"
 	keyStatus    = "status"
 	keyTimestamp = "timestamp"
@@ -33,16 +35,6 @@ const (
 	keyURLTitle  = "url_title"
 	keyUser      = "user"
 )
-
-// ErrInvalidToken indicates an invalid token
-var ErrInvalidToken = errors.New("Invalid token")
-
-// ErrInvalidUser indicates an invalid user
-var ErrInvalidUser = errors.New("Invalid user")
-
-// ErrInvalidMessage indicates invalid message text
-// was sent to a library function
-var ErrInvalidMessage = errors.New("Invalid message")
 
 // ErrInvalidRequest indicates invalid request data
 // was sent to a library function

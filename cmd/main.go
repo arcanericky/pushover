@@ -6,12 +6,14 @@ import (
 
 const (
 	optionDevice      = "device"
+	optionExpire      = "expire"
 	optionHTML        = "html"
 	optionImage       = "image"
 	optionMessage     = "message"
 	optionMonospace   = "monospace"
 	optionPriority    = "priority"
 	optionPushoverURL = "pushoverurl"
+	optionRetry       = "retry"
 	optionSound       = "sound"
 	optionTimestamp   = "timestamp"
 	optionTitle       = "title"

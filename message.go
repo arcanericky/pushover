@@ -12,7 +12,13 @@ import (
 )
 
 // MessageRequest is the data for the POST to the Pushover
-// REST API. See the Pushover API documentation for
+// REST API. Some fields in this request should contain
+// numbers but the Pushover API parameters are strings.
+// There is no validation performed for these fields. If
+// invalid data is submitted to the Pushover API, it will
+// be rejected with an appropriate error.
+//
+// See the Pushover API documentation for
 // more information on these parameters.
 type MessageRequest struct {
 	// The URL for the Pushover REST API POST.
@@ -77,6 +83,21 @@ type MessageRequest struct {
 	// Invalid priority numbers will be rejected by Pushover
 	Priority string
 
+	// How often in seconds the Pushover servers will send
+	// the same notification to the user
+	//
+	// Must be set when Priority is set to "2" and must
+	// have a value of at least 30 seconds between retries
+	Retry string
+
+	// How many seconds your notification will continue to
+	// be retried for (every retry seconds)
+	//
+	// Must be set when Priority is set to "2" and must
+	// have a maximum value of at most 10800 seconds
+	// (3 hours)
+	Expire string
+
 	// Unix timestamp for the message rather than the time
 	// the message was received by the Pushover REST API
 	//
@@ -135,7 +156,18 @@ type MessageResponse struct {
 	ErrorParameters map[string]string
 }
 
-func messageWithoutValidation(ctx context.Context, request MessageRequest) (*MessageResponse, error) {
+// MessageContext will submit a request to the Pushover
+// Message API. This function will send a
+// message, triggering a notification on a user's
+// device or a group's devices.
+//
+//   resp, err := pushover.MessageContext(context.Background(),
+//     pushover.MessageRequest{
+//	     Token:   token,
+//	     User:    user,
+//	     Message: message,
+//   })
+func MessageContext(ctx context.Context, request MessageRequest) (*MessageResponse, error) {
 	var requestData io.Reader
 	var contentType string
 
@@ -162,6 +194,8 @@ func messageWithoutValidation(ctx context.Context, request MessageRequest) (*Mes
 		{field: keySound, value: request.Sound},
 		{field: keyDevice, value: request.Device},
 		{field: keyPriority, value: request.Priority},
+		{field: keyRetry, value: request.Retry},
+		{field: keyExpire, value: request.Expire},
 		{field: keyTimestamp, value: request.Timestamp},
 	}
 
@@ -260,46 +294,10 @@ func messageWithoutValidation(ctx context.Context, request MessageRequest) (*Mes
 	return r, nil
 }
 
-// MessageContext will submit a request to the Pushover
-// Message API after validating the required fields
-// are present. This function will send a
-// message, triggering a notification on a user's
-// device or a group's devices.
-//
-// The required fields are: Message, Token, User
-//
-//   resp, err := pushover.MessageContext(context.Background(),
-//     pushover.MessageRequest{
-//	     Token:   token,
-//	     User:    user,
-//	     Message: message,
-//   })
-func MessageContext(ctx context.Context, request MessageRequest) (*MessageResponse, error) {
-	// Validate Message
-	if len(request.Message) == 0 {
-		return nil, ErrInvalidMessage
-	}
-
-	// Validate Token
-	if len(request.Token) == 0 {
-		return nil, ErrInvalidToken
-	}
-
-	// Validate User
-	if len(request.User) == 0 {
-		return nil, ErrInvalidUser
-	}
-
-	return messageWithoutValidation(ctx, request)
-}
-
 // Message will submit a request to the Pushover
-// Message API after validating the required fields
-// are present. This function will send a
+// Message API. This function will send a
 // message, triggering a notification on a user's
 // device or a group's devices.
-//
-// The required fields are: Message, Token, User
 //
 //   resp, err := pushover.Message(pushover.MessageRequest{
 //	     Token:   token,

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 
 	"github.com/arcanericky/pushover"
 	"github.com/spf13/cobra"
@@ -31,6 +32,8 @@ func outputMessageRequest(r pushover.MessageRequest) {
 		{field: "Sound", value: r.Sound},
 		{field: "Device", value: r.Device},
 		{field: "Priority", value: r.Priority},
+		{field: "Retry", value: r.Retry},
+		{field: "Expire", value: r.Expire},
 		{field: "Timestamp", value: r.Timestamp},
 	}
 
@@ -79,10 +82,22 @@ func outputMessageResponse(r pushover.MessageResponse) {
 	fmt.Println("Response Body:", r.ResponseBody)
 }
 
+func intOptionToString(cmd *cobra.Command, option string, value int) string {
+	var s string
+
+	if cmd.Flags().Changed(option) {
+		s = strconv.Itoa(value)
+	}
+
+	return s
+}
+
 func addMessageCmd(parentCmd *cobra.Command) {
 	const enable = "1"
 	var token, user, title, message, url, urlTitle, sound, device, image,
-		priority, timestamp, pushoverURL, htmlField, monospaceField string
+		timestamp, pushoverURL, htmlField, monospaceValue string
+	var priority int8
+	var retry, expire int16
 	var html, monospace bool
 	var imageReader io.ReadCloser
 	var err error
@@ -103,8 +118,12 @@ Required options are:
 			}
 
 			if monospace == true {
-				monospaceField = enable
+				monospaceValue = enable
 			}
+
+			priorityString := intOptionToString(cmd, optionPriority, int(priority))
+			retryString := intOptionToString(cmd, optionRetry, int(retry))
+			expireString := intOptionToString(cmd, optionExpire, int(expire))
 
 			if len(image) > 0 {
 				imageReader, err = os.Open(image)
@@ -124,10 +143,12 @@ Required options are:
 				URL:         url,
 				URLTitle:    urlTitle,
 				HTML:        htmlField,
-				Monospace:   monospaceField,
+				Monospace:   monospaceValue,
 				Sound:       sound,
 				Device:      device,
-				Priority:    priority,
+				Priority:    priorityString,
+				Retry:       retryString,
+				Expire:      expireString,
 				Timestamp:   timestamp,
 				ImageReader: imageReader,
 				ImageName:   image,
@@ -168,7 +189,9 @@ Required options are:
 	messageCmd.Flags().StringVarP(&sound, optionSound, "", "", "Name of a sound to override user's default")
 	messageCmd.Flags().StringVarP(&image, optionImage, "", "", "Image attachment")
 	messageCmd.Flags().StringVarP(&device, optionDevice, "", "", "Device name for message")
-	messageCmd.Flags().StringVarP(&priority, optionPriority, "", "", "Message priority")
+	messageCmd.Flags().Int8VarP(&priority, optionPriority, "", 0, "Message priority")
+	messageCmd.Flags().Int16VarP(&retry, optionRetry, "", 0, "Retry interval")
+	messageCmd.Flags().Int16VarP(&expire, optionExpire, "", 0, "Message expiration length")
 	messageCmd.Flags().StringVarP(&timestamp, optionTimestamp, "", "", "Unix timestamp for message")
 
 	parentCmd.AddCommand(messageCmd)

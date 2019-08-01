@@ -79,7 +79,16 @@ type ValidateResponse struct {
 	ErrorParameters map[string]string
 }
 
-func validateWithoutValidation(ctx context.Context, request ValidateRequest) (*ValidateResponse, error) {
+// ValidateContext will submit a POST request to the Pushover
+// Validate API. This function will check a user or group token
+// to determine if it is valid.
+//
+//   resp, err := pushover.ValidateContext(context.Background(),
+//     pushover.ValidateRequest{
+//	     Token:   token,
+//	     User:    user,
+//   })
+func ValidateContext(ctx context.Context, request ValidateRequest) (*ValidateResponse, error) {
 	if len(request.PushoverURL) == 0 {
 		request.PushoverURL = validateURL
 	}
@@ -160,37 +169,10 @@ func validateWithoutValidation(ctx context.Context, request ValidateRequest) (*V
 	return r, nil
 }
 
-// ValidateContext will submit a POST request to the Pushover
-// Validate API after validating the required fields are
-// present This function will check a user or group token
-// to determine if it is valid.
-//
-// The required fields are: Token, User
-//   resp, err := pushover.ValidateContext(context.Background(),
-//     pushover.ValidateRequest{
-//	     Token:   token,
-//	     User:    user,
-//   })
-func ValidateContext(ctx context.Context, request ValidateRequest) (*ValidateResponse, error) {
-	// Validate Token
-	if len(request.Token) == 0 {
-		return nil, ErrInvalidToken
-	}
-
-	// Validate User
-	if len(request.User) == 0 {
-		return nil, ErrInvalidUser
-	}
-
-	return validateWithoutValidation(ctx, request)
-}
-
 // Validate will submit a POST request to the Pushover
-// Validate API after validating the required fields are
-// present This function will check a user or group token
+// Validate API This function will check a user or group token
 // to determine if it is valid.
 //
-// The required fields are: Token, User
 //   resp, err := pushover.Validate(pushover.ValidateRequest{
 //	     Token:   token,
 //	     User:    user,
