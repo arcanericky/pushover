@@ -22,33 +22,31 @@ The Pushover service is a great way to send notifications to your device for any
 
 Obtaining a Pushover account and adding an application for using this library are not covered in this README. Pushover API and user tokens are required.
 
-To use this Pushover package, just import it and make a single call to `pushover.Message`.
+To use this Pushover package (with Go 1.13+), just import it and make a single call to `pushover.Message`.
 
 ```
 $ cat > main.go << EOF
 package main
 
 import (
-	"context"
-	"fmt"
-	"os"
-	"github.com/arcanericky/pushover"
+  "fmt"
+  "os"
+  "github.com/arcanericky/pushover"
 )
 
 func main() {
-	var r *pushover.MessageResponse
-	var e error
-	if r, e = pushover.Message(pushover.MessageRequest{
-		Token: os.Args[1], User: os.Args[2], Message: os.Args[3]},
-	); e != nil {
-		fmt.Println(e)
-		return
-	}
-	fmt.Println(r)
+  var r *pushover.MessageResponse
+  var e error
+
+  if r, e = pushover.Message(pushover.MessageRequest{Token: os.Args[1], User: os.Args[2], Message: os.Args[3]}); e != nil {
+    fmt.Println(e)
+    return
+  }
+  fmt.Println(r)
 }
 EOF
-$ GO111MOD=on go mod init demo
-$ GO111MOD=on go build
+$ go mod init demo
+$ go build
 $ ./demo api-token user-token "Test Message"
 ```
 
