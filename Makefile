@@ -1,7 +1,6 @@
 VERSION_INJECT=main.versionText
 SRCS=*.go cmd/*.go
 PACKAGE=cmd/*.go
-export GO111MODULE=on
 
 EXECUTABLE=bin/pushover
 
@@ -18,7 +17,7 @@ WINDOWS_386=$(WINDOWS)-386.exe
 
 .PHONY: all test clean
 
-all: test build
+all: build
 
 build: linux-amd64 windows-amd64 darwin-amd64 linux-386 windows-386
 
