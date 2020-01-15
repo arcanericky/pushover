@@ -228,7 +228,7 @@ func MessageContext(ctx context.Context, request MessageRequest) (*MessageRespon
 
 	req, err := http.NewRequest(http.MethodPost, request.PushoverURL, requestData)
 	if err != nil {
-		return nil, ErrInvalidRequest
+		return nil, &ErrInvalidRequest{}
 	}
 
 	req = req.WithContext(ctx)
@@ -252,7 +252,7 @@ func MessageContext(ctx context.Context, request MessageRequest) (*MessageRespon
 	body := &bytes.Buffer{}
 	_, err = body.ReadFrom(resp.Body)
 	if err != nil {
-		return nil, ErrInvalidResponse
+		return nil, &ErrInvalidResponse{}
 	}
 
 	r.ResponseBody = body.String()
@@ -262,20 +262,20 @@ func MessageContext(ctx context.Context, request MessageRequest) (*MessageRespon
 	// Decode json response
 	var result map[string]interface{}
 	if e := json.NewDecoder(strings.NewReader(string(r.ResponseBody))).Decode(&result); e != nil {
-		return nil, ErrInvalidResponse
+		return nil, &ErrInvalidResponse{}
 	}
 
 	var ok bool
 
 	// Populate request status
 	if r.APIStatus, ok = mapKeyToInt(keyStatus, result); !ok {
-		return nil, ErrInvalidResponse
+		return nil, &ErrInvalidResponse{}
 	}
 	delete(result, keyStatus)
 
 	// Populate request ID
 	if r.Request, ok = result[keyRequest].(string); !ok {
-		return nil, ErrInvalidResponse
+		return nil, &ErrInvalidResponse{}
 	}
 	delete(result, keyRequest)
 

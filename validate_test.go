@@ -136,21 +136,21 @@ func TestPushoverValidate(t *testing.T) {
 	// Invalid API Status in response
 	request.User = "failstatus"
 	r, e = Validate(request)
-	if e != ErrInvalidResponse {
+	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid API status in response")
 	}
 
 	// Invalid request ID in response
 	request.User = "failrequest"
 	r, e = Validate(request)
-	if e != ErrInvalidResponse {
+	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid request ID in response")
 	}
 
 	// Invalid json response
 	request.User = "failjson"
 	r, e = Validate(request)
-	if e != ErrInvalidResponse {
+	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid response JSON")
 	}
 
@@ -166,7 +166,7 @@ func TestPushoverValidate(t *testing.T) {
 	// Invalid body
 	request.User = "failbody"
 	r, e = Validate(request)
-	if e != ErrInvalidResponse {
+	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid response body")
 	}
 
@@ -175,5 +175,17 @@ func TestPushoverValidate(t *testing.T) {
 	r, e = Validate(request)
 	if e == nil {
 		t.Error("No API server")
+	}
+}
+
+func TestErrorTypes(t *testing.T) {
+	errRequest := &ErrInvalidRequest{}
+	if len(errRequest.Error()) == 0 {
+		t.Error("ErrInvalidRequest does not return string on Error()")
+	}
+
+	errResponse := &ErrInvalidResponse{}
+	if len(errResponse.Error()) == 0 {
+		t.Error("ErrInvalidResponse does not return string on Error()")
 	}
 }

@@ -8,7 +8,6 @@
 package pushover
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -38,11 +37,19 @@ const (
 
 // ErrInvalidRequest indicates invalid request data
 // was sent to a library function
-var ErrInvalidRequest = errors.New("Invalid request")
+type ErrInvalidRequest struct{}
+
+func (ir *ErrInvalidRequest) Error() string {
+	return "Invalid request"
+}
 
 // ErrInvalidResponse indicates an invalid response body
 // was received from the Pushover API
-var ErrInvalidResponse = errors.New("Invalid response")
+type ErrInvalidResponse struct{}
+
+func (ir *ErrInvalidResponse) Error() string {
+	return "Invalid response"
+}
 
 var messagesURL = "https://api.pushover.net/1/messages.json"
 var validateURL = "https://api.pushover.net/1/users/validate.json"
