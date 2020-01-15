@@ -1,6 +1,8 @@
 package main
 
 import (
+	"runtime"
+
 	"github.com/spf13/cobra"
 )
 
@@ -37,7 +39,8 @@ message (notification) and validate are supported.
 See the README at https://github.com/arcanericky/pushover for
 more information. For details on Pushover, see
 https://pushover.net/.`,
-		Version: versionText,
+		Version: versionText + " " + runtime.GOOS + "/" +
+			runtime.GOARCH + " " + runtime.Version(),
 	}
 
 	addMessageCmd(rootCmd)

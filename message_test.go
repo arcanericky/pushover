@@ -142,7 +142,7 @@ func TestPushoverMessage(t *testing.T) {
 	// Invalid Pushover URL
 	request.PushoverURL = "\x7f"
 	r, e = MessageContext(context.TODO(), request)
-	if e != ErrInvalidRequest {
+	if _, ok := e.(*ErrInvalidRequest); !ok {
 		t.Error("Invalid Pushover URL")
 	}
 
@@ -201,28 +201,28 @@ func TestPushoverMessage(t *testing.T) {
 	// Invalid API Status in response
 	request.User = "failstatus"
 	r, e = Message(request)
-	if e != ErrInvalidResponse {
+	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid API status in response")
 	}
 
 	// Invalid request ID in response
 	request.User = "failrequest"
 	r, e = Message(request)
-	if e != ErrInvalidResponse {
+	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid request ID in response")
 	}
 
 	// Invalid json response
 	request.User = "failjson"
 	r, e = Message(request)
-	if e != ErrInvalidResponse {
+	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid response JSON")
 	}
 
 	// Invalid body
 	request.User = "failbody"
 	r, e = Message(request)
-	if e != ErrInvalidResponse {
+	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid response body")
 	}
 

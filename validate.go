@@ -119,7 +119,7 @@ func ValidateContext(ctx context.Context, request ValidateRequest) (*ValidateRes
 	body := &bytes.Buffer{}
 	_, err = body.ReadFrom(resp.Body)
 	if err != nil {
-		return nil, ErrInvalidResponse
+		return nil, &ErrInvalidResponse{}
 	}
 
 	r.ResponseBody = body.String()
@@ -129,20 +129,20 @@ func ValidateContext(ctx context.Context, request ValidateRequest) (*ValidateRes
 	// Decode json response
 	var result map[string]interface{}
 	if e := json.NewDecoder(strings.NewReader(string(r.ResponseBody))).Decode(&result); e != nil {
-		return nil, ErrInvalidResponse
+		return nil, &ErrInvalidResponse{}
 	}
 
 	var ok bool
 
 	// Populate request status
 	if r.APIStatus, ok = mapKeyToInt(keyStatus, result); !ok {
-		return nil, ErrInvalidResponse
+		return nil, &ErrInvalidResponse{}
 	}
 	delete(result, keyStatus)
 
 	// Populate request ID
 	if r.Request, ok = result[keyRequest].(string); !ok {
-		return nil, ErrInvalidResponse
+		return nil, &ErrInvalidResponse{}
 	}
 	delete(result, keyRequest)
 

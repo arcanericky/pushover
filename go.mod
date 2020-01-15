@@ -1,6 +1,6 @@
 module github.com/arcanericky/pushover
 
-go 1.13
+go 1.13.x
 
 require (
 	github.com/spf13/cobra v0.0.5
