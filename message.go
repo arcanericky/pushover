@@ -98,6 +98,11 @@ type MessageRequest struct {
 	// (3 hours)
 	Expire string
 
+	// Callback url for the message
+	//
+	// Optional be set when Priority is set to "2"
+	Callback string
+
 	// Unix timestamp for the message rather than the time
 	// the message was received by the Pushover REST API
 	//
@@ -196,6 +201,7 @@ func MessageContext(ctx context.Context, request MessageRequest) (*MessageRespon
 		{field: keyPriority, value: request.Priority},
 		{field: keyRetry, value: request.Retry},
 		{field: keyExpire, value: request.Expire},
+		{field: keyCallback, value: request.Callback},
 		{field: keyTimestamp, value: request.Timestamp},
 	}
 
