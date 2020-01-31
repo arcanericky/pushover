@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	keyCallback  = "callback"
 	keyDevice    = "device"
 	keyDevices   = "devices"
 	keyErrors    = "errors"
