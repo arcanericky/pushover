@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	optionCallback    = "callback"
 	optionDevice      = "device"
 	optionExpire      = "expire"
 	optionHTML        = "html"
