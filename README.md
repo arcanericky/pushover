@@ -100,14 +100,17 @@ Usage:
   pushover message [flags]
 
 Flags:
+      --callback string      Optional callback URL
       --device string        Device name for message
+      --expire int16         Message expiration length
   -h, --help                 help for message
       --html                 Enable HTML formatting
       --image string         Image attachment
   -m, --message string       Notification message
       --monospace            Enable monospace formatting
-      --priority string      Message priority
+      --priority int8        Message priority
       --pushoverurl string   Pushover API URL
+      --retry int16          Retry interval
       --sound string         Name of a sound to override user's default
       --timestamp string     Unix timestamp for message
       --title string         Message title (if empty, uses app name)
@@ -115,7 +118,7 @@ Flags:
       --url string           Supplementary URL to show with the message
       --urltitle string      Title for the URL
   -u, --user string          User/Group key
-```
+  ```
 
 ## Contributing
 

@@ -95,7 +95,7 @@ func intOptionToString(cmd *cobra.Command, option string, value int) string {
 func addMessageCmd(parentCmd *cobra.Command) {
 	const enable = "1"
 	var token, user, title, message, url, urlTitle, sound, device, image,
-		timestamp, pushoverURL, htmlField, monospaceValue string
+		timestamp, pushoverURL, htmlField, monospaceValue, callback string
 	var priority int8
 	var retry, expire int16
 	var html, monospace bool
@@ -152,6 +152,7 @@ Required options are:
 				Timestamp:   timestamp,
 				ImageReader: imageReader,
 				ImageName:   image,
+				Callback:    callback,
 			}
 
 			fmt.Println("Request")
@@ -193,6 +194,7 @@ Required options are:
 	messageCmd.Flags().Int16VarP(&retry, optionRetry, "", 0, "Retry interval")
 	messageCmd.Flags().Int16VarP(&expire, optionExpire, "", 0, "Message expiration length")
 	messageCmd.Flags().StringVarP(&timestamp, optionTimestamp, "", "", "Unix timestamp for message")
+	messageCmd.Flags().StringVarP(&callback, optionCallback, "", "", "Optional callback URL")
 
 	parentCmd.AddCommand(messageCmd)
 }
