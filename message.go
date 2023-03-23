@@ -166,12 +166,12 @@ type MessageResponse struct {
 // message, triggering a notification on a user's
 // device or a group's devices.
 //
-//   resp, err := pushover.MessageContext(context.Background(),
-//     pushover.MessageRequest{
-//	     Token:   token,
-//	     User:    user,
-//	     Message: message,
-//   })
+//	  resp, err := pushover.MessageContext(context.Background(),
+//	    pushover.MessageRequest{
+//		     Token:   token,
+//		     User:    user,
+//		     Message: message,
+//	  })
 func MessageContext(ctx context.Context, request MessageRequest) (*MessageResponse, error) {
 	var requestData io.Reader
 	var contentType string
@@ -305,11 +305,11 @@ func MessageContext(ctx context.Context, request MessageRequest) (*MessageRespon
 // message, triggering a notification on a user's
 // device or a group's devices.
 //
-//   resp, err := pushover.Message(pushover.MessageRequest{
-//	     Token:   token,
-//	     User:    user,
-//	     Message: message,
-//   })
+//	  resp, err := pushover.Message(pushover.MessageRequest{
+//		     Token:   token,
+//		     User:    user,
+//		     Message: message,
+//	  })
 func Message(request MessageRequest) (*MessageResponse, error) {
 	return MessageContext(context.Background(), request)
 }

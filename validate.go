@@ -83,11 +83,11 @@ type ValidateResponse struct {
 // Validate API. This function will check a user or group token
 // to determine if it is valid.
 //
-//   resp, err := pushover.ValidateContext(context.Background(),
-//     pushover.ValidateRequest{
-//	     Token:   token,
-//	     User:    user,
-//   })
+//	  resp, err := pushover.ValidateContext(context.Background(),
+//	    pushover.ValidateRequest{
+//		     Token:   token,
+//		     User:    user,
+//	  })
 func ValidateContext(ctx context.Context, request ValidateRequest) (*ValidateResponse, error) {
 	if len(request.PushoverURL) == 0 {
 		request.PushoverURL = validateURL
@@ -173,10 +173,10 @@ func ValidateContext(ctx context.Context, request ValidateRequest) (*ValidateRes
 // Validate API This function will check a user or group token
 // to determine if it is valid.
 //
-//   resp, err := pushover.Validate(pushover.ValidateRequest{
-//	     Token:   token,
-//	     User:    user,
-//   })
+//	  resp, err := pushover.Validate(pushover.ValidateRequest{
+//		     Token:   token,
+//		     User:    user,
+//	  })
 func Validate(request ValidateRequest) (*ValidateResponse, error) {
 	return ValidateContext(context.Background(), request)
 }
