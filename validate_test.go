@@ -23,10 +23,10 @@ Token Invaild
 //const id = "deadbeef-dead-beef-dead-deadbeefdead"
 
 func validateServerHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	_ = r.ParseForm()
 
 	// Check token
-	value, _ := r.Form["token"]
+	value := r.Form["token"]
 	if len(value) == 0 || len(value[0]) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, `{"token":"invalid","errors":["application token is invalid"],"status":0,"request":"%s"}`, id)
@@ -34,7 +34,7 @@ func validateServerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check user
-	user, _ := r.Form["user"]
+	user := r.Form["user"]
 	if len(user) == 0 || len(user[0]) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, `{"user":"invalid","errors":["user key is invalid"],"status":0,"request":"%s"}`, id)
@@ -88,13 +88,13 @@ func TestPushoverValidate(t *testing.T) {
 	}
 
 	// Handling of no token
-	r, e = ValidateContext(context.TODO(), request)
+	r, _ = ValidateContext(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "application token is invalid" || r.ErrorParameters["token"] != "invalid" {
 		t.Error("Handling of no token without validation")
 	}
 
-	r, e = Validate(request)
+	r, _ = Validate(request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "application token is invalid" || r.ErrorParameters["token"] != "invalid" {
 		t.Error("Handling of no token without validation")
@@ -102,14 +102,14 @@ func TestPushoverValidate(t *testing.T) {
 
 	// Handling of no user
 	request.Token = "testtoken"
-	r, e = ValidateContext(context.TODO(), request)
+	r, _ = ValidateContext(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "user key is invalid" ||
 		r.ErrorParameters["user"] != "invalid" {
 		t.Error("Handling of no user without validation")
 	}
 
-	r, e = Validate(request)
+	r, _ = Validate(request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "user key is invalid" ||
 		r.ErrorParameters["user"] != "invalid" {
@@ -127,7 +127,7 @@ func TestPushoverValidate(t *testing.T) {
 
 	// Context cancellation
 	ctx, cancel := context.WithTimeout(context.Background(), 0*time.Millisecond)
-	r, e = ValidateContext(ctx, request)
+	_, e = ValidateContext(ctx, request)
 	if e != context.DeadlineExceeded {
 		t.Error("Context deadline exceeded")
 	}
@@ -135,21 +135,21 @@ func TestPushoverValidate(t *testing.T) {
 
 	// Invalid API Status in response
 	request.User = "failstatus"
-	r, e = Validate(request)
+	_, e = Validate(request)
 	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid API status in response")
 	}
 
 	// Invalid request ID in response
 	request.User = "failrequest"
-	r, e = Validate(request)
+	_, e = Validate(request)
 	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid request ID in response")
 	}
 
 	// Invalid json response
 	request.User = "failjson"
-	r, e = Validate(request)
+	_, e = Validate(request)
 	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid response JSON")
 	}
@@ -165,14 +165,14 @@ func TestPushoverValidate(t *testing.T) {
 
 	// Invalid body
 	request.User = "failbody"
-	r, e = Validate(request)
+	_, e = Validate(request)
 	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid response body")
 	}
 
 	// Test http.PostForm() returning error
 	apiServer.Close()
-	r, e = Validate(request)
+	_, e = Validate(request)
 	if e == nil {
 		t.Error("No API server")
 	}

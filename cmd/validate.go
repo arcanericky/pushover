@@ -114,9 +114,9 @@ Required options are:
 
 	// Required options
 	validateCmd.Flags().StringVarP(&token, optionToken, "t", "", "Application's API token")
-	validateCmd.MarkFlagRequired(optionToken)
+	_ = validateCmd.MarkFlagRequired(optionToken)
 	validateCmd.Flags().StringVarP(&user, optionUser, "u", "", "User/Group key")
-	validateCmd.MarkFlagRequired(optionUser)
+	_ = validateCmd.MarkFlagRequired(optionUser)
 
 	// Optional options
 	validateCmd.Flags().StringVarP(&pushoverURL, optionPushoverURL, "", "", "Pushover API URL")

@@ -113,11 +113,11 @@ Required options are:
   --message
 `,
 		Run: func(cmd *cobra.Command, args []string) {
-			if html == true {
+			if html {
 				htmlField = enable
 			}
 
-			if monospace == true {
+			if monospace {
 				monospaceValue = enable
 			}
 
@@ -174,11 +174,11 @@ Required options are:
 
 	// Required options
 	messageCmd.Flags().StringVarP(&token, optionToken, "t", "", "Application's API token")
-	messageCmd.MarkFlagRequired(optionToken)
+	_ = messageCmd.MarkFlagRequired(optionToken)
 	messageCmd.Flags().StringVarP(&user, optionUser, "u", "", "User/Group key")
-	messageCmd.MarkFlagRequired(optionUser)
+	_ = messageCmd.MarkFlagRequired(optionUser)
 	messageCmd.Flags().StringVarP(&message, optionMessage, "m", "", "Notification message")
-	messageCmd.MarkFlagRequired(optionMessage)
+	_ = messageCmd.MarkFlagRequired(optionMessage)
 
 	// Optional options
 	messageCmd.Flags().StringVarP(&pushoverURL, optionPushoverURL, "", "", "Pushover API URL")

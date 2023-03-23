@@ -219,11 +219,11 @@ func MessageContext(ctx context.Context, request MessageRequest) (*MessageRespon
 		requestBody := &bytes.Buffer{}
 		writer := multipart.NewWriter(requestBody)
 		part, _ := writer.CreateFormFile("attachment", request.ImageName)
-		io.Copy(part, request.ImageReader)
+		_, _ = io.Copy(part, request.ImageReader)
 
 		for _, v := range fields {
 			if len(v.value) > 0 {
-				writer.WriteField(v.field, v.value)
+				_ = writer.WriteField(v.field, v.value)
 			}
 		}
 		writer.Close()
