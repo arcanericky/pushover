@@ -47,5 +47,5 @@ https://pushover.net/.`,
 	addMessageCmd(rootCmd)
 	addValidateCmd(rootCmd)
 
-	rootCmd.Execute()
+	_ = rootCmd.Execute()
 }

@@ -42,11 +42,11 @@ Invalid Priority
 const id = "deadbeef-dead-beef-dead-deadbeefdead"
 
 func serverHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	r.ParseMultipartForm(0)
+	_ = r.ParseForm()
+	_ = r.ParseMultipartForm(0)
 
 	// Check message
-	value, _ := r.Form["message"]
+	value := r.Form["message"]
 	if len(value) == 0 || len(value[0]) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, `{"message":"cannot be blank","errors":["message cannot be blank"],"status":0,"request":"%s"}`, id)
@@ -54,7 +54,7 @@ func serverHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check token
-	value, _ = r.Form["token"]
+	value = r.Form["token"]
 	if len(value) == 0 || len(value[0]) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, `{"token":"invalid","errors":["application token is invalid"],"status":0,"request":"%s"}`, id)
@@ -62,7 +62,7 @@ func serverHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check user
-	user, _ := r.Form["user"]
+	user := r.Form["user"]
 	if len(user) == 0 || len(user[0]) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, `{"user":"invalid","errors":["user identifier is not a valid user, group, or subscribed user key"],"status":0,"request":"%s"}`, id)
@@ -70,15 +70,15 @@ func serverHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check html and monospace
-	html, _ := r.Form["html"]
-	monospace, _ := r.Form["monospace"]
+	html := r.Form["html"]
+	monospace := r.Form["monospace"]
 	if len(html) > 0 && len(monospace) > 0 && html[0] == "1" && monospace[0] == "1" {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, `{"html":"cannot be set with monospace","monospace":"cannot be set with html","errors":["html and monospace are mutually exclusive"],"status":0,"request":"%s"}`, id)
 		return
 	}
 
-	value, _ = r.Form["priority"]
+	value = r.Form["priority"]
 	if len(value) > 0 && len(value[0]) > 0 {
 		priority, err := strconv.Atoi(value[0])
 		if err != nil || priority < -2 || priority > 2 {
@@ -133,7 +133,7 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Default Pushover URL
 	messagesURL = apiServer.URL
-	r, e := MessageContext(context.TODO(), request)
+	r, _ := MessageContext(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "message cannot be blank" || r.ErrorParameters["message"] != "cannot be blank" {
 		t.Error("Default Pushover URL")
@@ -141,20 +141,20 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Invalid Pushover URL
 	request.PushoverURL = "\x7f"
-	r, e = MessageContext(context.TODO(), request)
+	_, e := MessageContext(context.TODO(), request)
 	if _, ok := e.(*ErrInvalidRequest); !ok {
 		t.Error("Invalid Pushover URL")
 	}
 
 	// Handling of no message
 	request.PushoverURL = apiServer.URL
-	r, e = MessageContext(context.TODO(), request)
+	r, _ = MessageContext(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "message cannot be blank" || r.ErrorParameters["message"] != "cannot be blank" {
 		t.Error("Handling of no message without validation")
 	}
 
-	r, e = Message(request)
+	r, _ = Message(request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "message cannot be blank" || r.ErrorParameters["message"] != "cannot be blank" {
 		t.Error("Handling of no message without validation")
@@ -162,13 +162,13 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Handling of no token
 	request.Message = "test message"
-	r, e = MessageContext(context.TODO(), request)
+	r, _ = MessageContext(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "application token is invalid" || r.ErrorParameters["token"] != "invalid" {
 		t.Error("Handling of no token without validation")
 	}
 
-	r, e = Message(request)
+	r, _ = Message(request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "application token is invalid" || r.ErrorParameters["token"] != "invalid" {
 		t.Error("Handling of no token without validation")
@@ -176,14 +176,14 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Handling of no user
 	request.Token = "testtoken"
-	r, e = MessageContext(context.TODO(), request)
+	r, _ = MessageContext(context.TODO(), request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "user identifier is not a valid user, group, or subscribed user key" ||
 		r.ErrorParameters["user"] != "invalid" {
 		t.Error("Handling of no user without validation")
 	}
 
-	r, e = Message(request)
+	r, _ = Message(request)
 	if r.HTTPStatusCode != http.StatusBadRequest || r.APIStatus != 0 || r.Request != id ||
 		r.Errors[0] != "user identifier is not a valid user, group, or subscribed user key" ||
 		r.ErrorParameters["user"] != "invalid" {
@@ -192,7 +192,7 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Valid submission
 	request.User = "testuser"
-	r, e = Message(request)
+	r, _ = Message(request)
 	if r.HTTPStatusCode != http.StatusOK || r.APIStatus != 1 || r.Request != id ||
 		len(r.Errors) > 0 || len(r.ErrorParameters) > 0 {
 		t.Error("Valid submit data")
@@ -200,28 +200,28 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Invalid API Status in response
 	request.User = "failstatus"
-	r, e = Message(request)
+	_, e = Message(request)
 	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid API status in response")
 	}
 
 	// Invalid request ID in response
 	request.User = "failrequest"
-	r, e = Message(request)
+	_, e = Message(request)
 	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid request ID in response")
 	}
 
 	// Invalid json response
 	request.User = "failjson"
-	r, e = Message(request)
+	_, e = Message(request)
 	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid response JSON")
 	}
 
 	// Invalid body
 	request.User = "failbody"
-	r, e = Message(request)
+	_, e = Message(request)
 	if _, ok := e.(*ErrInvalidResponse); !ok {
 		t.Error("Invalid response body")
 	}
@@ -237,7 +237,7 @@ func TestPushoverMessage(t *testing.T) {
 	request.Device = "device"
 	request.Priority = "0"
 	request.Timestamp = "timestamp"
-	r, e = Message(request)
+	r, _ = Message(request)
 	if r.HTTPStatusCode != http.StatusOK || r.APIStatus != 1 || r.Request != id ||
 		len(r.Errors) > 0 || len(r.ErrorParameters) > 0 {
 		t.Error("All fields submitted")
@@ -245,7 +245,7 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Priority of 2 yields additional "receipt" parameter
 	request.Priority = "2"
-	r, e = Message(request)
+	r, _ = Message(request)
 	if r.HTTPStatusCode != http.StatusOK || r.APIStatus != 1 || r.Request != id ||
 		len(r.Errors) > 0 || len(r.ErrorParameters) > 0 {
 		t.Error("Priority 2")
@@ -254,7 +254,7 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Context cancellation
 	ctx, cancel := context.WithTimeout(context.Background(), 0*time.Millisecond)
-	r, e = MessageContext(ctx, request)
+	_, e = MessageContext(ctx, request)
 	if e != context.DeadlineExceeded {
 		t.Error("Context deadline exceeded")
 	}
@@ -262,7 +262,7 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Image attachment
 	request.ImageReader = strings.NewReader("image data")
-	r, e = Message(request)
+	r, _ = Message(request)
 	if r.HTTPStatusCode != http.StatusOK || r.APIStatus != 1 || r.Request != id ||
 		len(r.Errors) > 0 || len(r.ErrorParameters) > 0 {
 		t.Error("Image attachment")
@@ -270,7 +270,7 @@ func TestPushoverMessage(t *testing.T) {
 
 	// Test http.PostForm() returning error
 	apiServer.Close()
-	r, e = Message(request)
+	_, e = Message(request)
 	if e == nil {
 		t.Error("No API server")
 	}

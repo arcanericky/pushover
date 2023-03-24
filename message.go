@@ -166,12 +166,12 @@ type MessageResponse struct {
 // message, triggering a notification on a user's
 // device or a group's devices.
 //
-//   resp, err := pushover.MessageContext(context.Background(),
-//     pushover.MessageRequest{
-//	     Token:   token,
-//	     User:    user,
-//	     Message: message,
-//   })
+//	  resp, err := pushover.MessageContext(context.Background(),
+//	    pushover.MessageRequest{
+//		     Token:   token,
+//		     User:    user,
+//		     Message: message,
+//	  })
 func MessageContext(ctx context.Context, request MessageRequest) (*MessageResponse, error) {
 	var requestData io.Reader
 	var contentType string
@@ -219,11 +219,11 @@ func MessageContext(ctx context.Context, request MessageRequest) (*MessageRespon
 		requestBody := &bytes.Buffer{}
 		writer := multipart.NewWriter(requestBody)
 		part, _ := writer.CreateFormFile("attachment", request.ImageName)
-		io.Copy(part, request.ImageReader)
+		_, _ = io.Copy(part, request.ImageReader)
 
 		for _, v := range fields {
 			if len(v.value) > 0 {
-				writer.WriteField(v.field, v.value)
+				_ = writer.WriteField(v.field, v.value)
 			}
 		}
 		writer.Close()
@@ -305,11 +305,11 @@ func MessageContext(ctx context.Context, request MessageRequest) (*MessageRespon
 // message, triggering a notification on a user's
 // device or a group's devices.
 //
-//   resp, err := pushover.Message(pushover.MessageRequest{
-//	     Token:   token,
-//	     User:    user,
-//	     Message: message,
-//   })
+//	  resp, err := pushover.Message(pushover.MessageRequest{
+//		     Token:   token,
+//		     User:    user,
+//		     Message: message,
+//	  })
 func Message(request MessageRequest) (*MessageResponse, error) {
 	return MessageContext(context.Background(), request)
 }

@@ -11,12 +11,12 @@ import (
 const id = "deadbeef-dead-beef-dead-deadbeefdead"
 
 func serverMessageHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	r.ParseMultipartForm(0)
+	_ = r.ParseForm()
+	_ = r.ParseMultipartForm(0)
 
 	// Check html and monospace
-	html, _ := r.Form["html"]
-	monospace, _ := r.Form["monospace"]
+	html := r.Form["html"]
+	monospace := r.Form["monospace"]
 	if len(html) > 0 && len(monospace) > 0 && html[0] == "1" && monospace[0] == "1" {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, `{"html":"cannot be set with monospace","monospace":"cannot be set with html","errors":["html and monospace are mutually exclusive"],"status":0,"request":"%s"}`, id)
@@ -83,9 +83,9 @@ func TestPushoverMessageCLI(t *testing.T) {
 }
 
 func serverValidateHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	_ = r.ParseForm()
 
-	token, _ := r.Form["token"]
+	token := r.Form["token"]
 	if len(token) > 0 && token[0] == "fail" {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, `{"token":"invalid","errors":["application token is invalid"],"status":0,"request":"e8488e4e-dbe1-4795-a253-3ef644aa14a6"}`)
